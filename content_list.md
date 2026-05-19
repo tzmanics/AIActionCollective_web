@@ -1,6 +1,4 @@
-# AI & Tech Educator for the Progressive Movement
-
-## Content Ideas Master List
+# AIAC Content List
 
 -----
 
@@ -134,51 +132,6 @@
 - Four Futures (Frase)
 - Abundance vs. austerity
 - Progressive tech policy
-
------
-
-## SHORT-FORM VIDEO TEMPLATE
-
-**Format:** 45-60 seconds, vertical, talking head or text-on-screen overlay
-
-**Structure:**
-
-**Hook (3-5 seconds)**
-One punchy question or provocative statement that stops the scroll. Examples:
-
-- “Do you know who owns the AI you use every day?”
-- “There’s a word for what’s happening to your job and nobody’s saying it out loud.”
-- “What if you got a check every time a robot did work a human used to do?”
-
-**Define it (10-15 seconds)**
-One sentence definition. Plain language, no jargon. Then one concrete real-world example that makes it tangible.
-
-**Why it matters for regular people (15-20 seconds)**
-Connect it directly to something people already care about. Jobs, wages, healthcare costs, time with their kids, their neighborhood. This is the “so what” that makes it political without being preachy.
-
-**The bigger picture (10-15 seconds)**
-One sentence that connects this term to the abundance vision. Plant the seed that this isn’t just a vocab word, it’s a piece of a larger story about what kind of future we’re building.
-
-**Call to action (5 seconds)**
-Not “like and subscribe.” Something that makes them think or act. Examples:
-
-- “Ask your rep where they stand on this.”
-- “Next time you use ChatGPT, remember who built it.”
-- “Follow for the next piece of the puzzle.”
-
------
-
-**Example Script: “Training Data”**
-
-Hook: “Every time you post online, you might be training the AI that could replace your job. For free.”
-
-Define it: “Training data is the text, images, and information AI learns from. Most of it came from the internet. Which means it came from us.”
-
-Why it matters: “Companies are worth billions because of what we collectively created, and none of us got a cut.”
-
-Bigger picture: “If AI is built on our collective knowledge, maybe its profits should be shared collectively too.”
-
-CTA: “That’s the argument for an AI dividend. More on that next.”
 
 -----
 
