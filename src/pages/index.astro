@@ -1,0 +1,105 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Card from '../components/Card.astro';
+import { SUBJECTS, TYPES } from '../data/taxonomy';
+
+const items = (await getCollection('items')).sort(
+  (a, b) => b.data.dateAdded.valueOf() - a.data.dateAdded.valueOf()
+);
+---
+
+<Base title="AI Action Collective — AI literacy for the progressive movement">
+  <section class="page-hero">
+    <p class="eyebrow">AI Literacy for the Progressive Movement</p>
+    <h1>The future is built by people who <em>understand</em> the tools.</h1>
+    <p class="lede">
+      A community directory of short videos, plain-language explainers, and tutorials
+      that connect AI technology to the world you're fighting to build.
+      Made by many creators. Organized by subject. <a href="/submit" style="color: var(--accent2);">Add yours.</a>
+    </p>
+  </section>
+
+  <div class="mission-strip">
+    <p>"In service of a future with more health, wealth, and well-being for everyone."</p>
+  </div>
+
+  <div class="filter-bar" id="filters">
+    <div class="filter-row">
+      <span class="filter-row-label">Type</span>
+      <button class="chip active" data-filter-type="all">All</button>
+      {TYPES.map((t) => (
+        <button class="chip" data-filter-type={t.id}>{t.labelPlural}</button>
+      ))}
+    </div>
+    <div class="filter-row">
+      <span class="filter-row-label">Subject</span>
+      <button class="chip active" data-filter-subject="all">All</button>
+      {SUBJECTS.map((s) => (
+        <button class="chip" data-filter-subject={s.id}>{s.label}</button>
+      ))}
+    </div>
+  </div>
+
+  <section class="directory">
+    <p class="directory-count"><span id="count">{items.length}</span> pieces of content</p>
+    <div class="card-grid" id="grid">
+      {items.map((item) => <Card item={item} />)}
+    </div>
+    <div class="empty-state" id="empty" hidden>
+      Nothing here yet for that combination — <a href="/submit" style="color: var(--accent);">be the first to submit something.</a>
+    </div>
+  </section>
+
+  <script>
+    // Client-side filtering. Active filters mirror into the URL query
+    // (?type=…&subject=…) so filtered views are shareable links.
+    const grid = document.getElementById('grid')!;
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>('.card'));
+    const countEl = document.getElementById('count')!;
+    const emptyEl = document.getElementById('empty')!;
+
+    const state = { type: 'all', subject: 'all' };
+
+    function apply() {
+      let visible = 0;
+      for (const card of cards) {
+        const okType = state.type === 'all' || card.dataset.type === state.type;
+        const okSubject =
+          state.subject === 'all' ||
+          (card.dataset.subjects || '').split(' ').includes(state.subject);
+        const show = okType && okSubject;
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      }
+      countEl.textContent = String(visible);
+      emptyEl.hidden = visible > 0;
+
+      for (const chip of document.querySelectorAll<HTMLElement>('[data-filter-type]')) {
+        chip.classList.toggle('active', chip.dataset.filterType === state.type);
+      }
+      for (const chip of document.querySelectorAll<HTMLElement>('[data-filter-subject]')) {
+        chip.classList.toggle('active', chip.dataset.filterSubject === state.subject);
+      }
+
+      const params = new URLSearchParams();
+      if (state.type !== 'all') params.set('type', state.type);
+      if (state.subject !== 'all') params.set('subject', state.subject);
+      const qs = params.toString();
+      history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
+    }
+
+    document.getElementById('filters')!.addEventListener('click', (e) => {
+      const chip = (e.target as HTMLElement).closest<HTMLElement>('.chip');
+      if (!chip) return;
+      if (chip.dataset.filterType) state.type = chip.dataset.filterType;
+      if (chip.dataset.filterSubject) state.subject = chip.dataset.filterSubject;
+      apply();
+    });
+
+    const params = new URLSearchParams(location.search);
+    state.type = params.get('type') || 'all';
+    state.subject = params.get('subject') || 'all';
+    apply();
+  </script>
+</Base>

@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Card from '../../components/Card.astro';
+import { TYPES } from '../../data/taxonomy';
+
+export async function getStaticPaths() {
+  return TYPES.map((type) => ({
+    params: { type: type.id },
+    props: { type },
+  }));
+}
+
+const { type } = Astro.props;
+
+const items = (await getCollection('items'))
+  .filter((item) => item.data.type === type.id)
+  .sort((a, b) => b.data.dateAdded.valueOf() - a.data.dateAdded.valueOf());
+---
+
+<Base title={`${type.labelPlural} — AI Action Collective`} description={type.blurb}>
+  <section class="page-hero">
+    <p class="eyebrow">Content type</p>
+    <h1>{type.labelPlural}</h1>
+    <p class="lede">{type.blurb}</p>
+  </section>
+
+  <section class="directory">
+    <p class="directory-count">{items.length} pieces of content · <a href="/" style="color: var(--accent2);">Browse everything</a></p>
+    {items.length > 0 ? (
+      <div class="card-grid">
+        {items.map((item) => <Card item={item} />)}
+      </div>
+    ) : (
+      <div class="empty-state">
+        Nothing here yet — <a href="/submit" style="color: var(--accent);">be the first to submit one.</a>
+      </div>
+    )}
+  </section>
+</Base>

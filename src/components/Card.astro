@@ -1,0 +1,74 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { subjectById, typeById } from '../data/taxonomy';
+
+interface Props {
+  item: CollectionEntry<'items'>;
+}
+
+const { item } = Astro.props;
+const d = item.data;
+const type = typeById(d.type);
+
+// Direct link with UTM credit so creators see us as a named source in their
+// analytics. No nofollow — outbound links pass SEO credit deliberately.
+const utm = 'utm_source=aiactioncollective&utm_medium=directory';
+const outbound = d.url + (d.url.includes('?') ? '&' : '?') + utm;
+
+const initial = d.creator.trim().charAt(0).toUpperCase() || '?';
+---
+
+<article
+  class="card"
+  data-type={d.type}
+  data-subjects={d.subjects.join(' ')}
+>
+  <a
+    class="card-thumb"
+    href={outbound}
+    target="_blank"
+    rel="noopener"
+    data-item={item.id}
+    data-creator={d.creator}
+    data-type={d.type}
+    aria-label={`${d.title} — opens on the creator's site`}
+  >
+    {d.thumbnail ? (
+      <img src={d.thumbnail} alt="" loading="lazy" />
+    ) : (
+      <div class="card-thumb-placeholder"><span>{type?.label}</span></div>
+    )}
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <a class="tag tag-type" href={`/types/${d.type}`}>{type?.label}</a>
+      {d.subjects.map((s) => (
+        <a class="tag tag-subject" href={`/subjects/${s}`}>{subjectById(s)?.label}</a>
+      ))}
+      {d.curated && <span class="tag tag-curated" title="Added by our curators, with attribution">Curated pick</span>}
+    </div>
+    <h3>
+      <a
+        href={outbound}
+        target="_blank"
+        rel="noopener"
+        data-item={item.id}
+        data-creator={d.creator}
+        data-type={d.type}
+      >{d.title}</a>
+    </h3>
+    <p class="card-desc">{d.description}</p>
+    <div class="card-creator">
+      {d.avatar ? (
+        <img class="avatar" src={d.avatar} alt="" loading="lazy" />
+      ) : (
+        <div class="avatar-placeholder" aria-hidden="true">{initial}</div>
+      )}
+      {d.creatorLink ? (
+        <a class="card-creator-name" href={d.creatorLink} target="_blank" rel="noopener">{d.creator}</a>
+      ) : (
+        <span class="card-creator-name">{d.creator}</span>
+      )}
+    </div>
+  </div>
+</article>

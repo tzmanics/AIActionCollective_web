@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Card from '../../components/Card.astro';
+import { SUBJECTS } from '../../data/taxonomy';
+
+export async function getStaticPaths() {
+  return SUBJECTS.map((subject) => ({
+    params: { subject: subject.id },
+    props: { subject },
+  }));
+}
+
+const { subject } = Astro.props;
+
+const items = (await getCollection('items'))
+  .filter((item) => item.data.subjects.includes(subject.id))
+  .sort((a, b) => b.data.dateAdded.valueOf() - a.data.dateAdded.valueOf());
+---
+
+<Base title={`${subject.label} — AI Action Collective`} description={subject.blurb}>
+  <section class="page-hero">
+    <p class="eyebrow">Subject</p>
+    <h1>{subject.label}</h1>
+    <p class="lede">{subject.blurb}</p>
+  </section>
+
+  <section class="directory">
+    <p class="directory-count">{items.length} pieces of content · <a href="/" style="color: var(--accent2);">Browse everything</a></p>
+    {items.length > 0 ? (
+      <div class="card-grid">
+        {items.map((item) => <Card item={item} />)}
+      </div>
+    ) : (
+      <div class="empty-state">
+        Nothing here yet — <a href="/submit" style="color: var(--accent);">be the first to submit something on this subject.</a>
+      </div>
+    )}
+  </section>
+</Base>

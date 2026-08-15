@@ -1,0 +1,170 @@
+---
+import Base from '../layouts/Base.astro';
+import { SUBJECTS, TYPES } from '../data/taxonomy';
+---
+
+<Base title="Submit content — AI Action Collective">
+  <section class="page-hero">
+    <p class="eyebrow">Submit</p>
+    <h1>Add your content to the <em>directory.</em></h1>
+    <p class="lede">
+      Link us to something you've made. A human reviews every submission —
+      usually within a week — and we'll email you either way.
+    </p>
+  </section>
+
+  <div class="prose" style="padding-bottom: 1rem;">
+    <h2>What fits here</h2>
+    <p class="muted">
+      · Connects AI to progressive politics, organizing, economics, or policy<br />
+      · Plain language — made for organizers and everyday people, not engineers<br />
+      · Informative over hype: no doomerism, no boosterism, no product shilling<br />
+      · Your own work (or work you have the right to share), publicly viewable at a link<br />
+      · Fits one of our types: short-form video, blog post/guide, or tutorial
+    </p>
+  </div>
+
+  <div class="prose" style="padding-top: 0;">
+    <form id="submit-form" class="form-grid" novalidate>
+      <div class="field">
+        <label for="f-title">Title *</label>
+        <input type="text" id="f-title" name="title" required maxlength="120" />
+      </div>
+
+      <div class="field">
+        <label for="f-url">Link to your content *</label>
+        <input type="url" id="f-url" name="url" required placeholder="https://…" />
+        <p class="hint">YouTube, TikTok, your blog — wherever it lives. We link directly and credit you.</p>
+      </div>
+
+      <div class="field">
+        <label for="f-type">Type *</label>
+        <select id="f-type" name="type" required>
+          <option value="">Choose one…</option>
+          {TYPES.map((t) => <option value={t.id}>{t.label}</option>)}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Subjects * <span style="font-weight: 300; text-transform: none; letter-spacing: normal;">(pick 1–2)</span></label>
+        <div class="checkbox-list" id="subject-boxes">
+          {SUBJECTS.map((s) => (
+            <label><input type="checkbox" name="subjects" value={s.id} /> {s.label}</label>
+          ))}
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-other">Doesn't fit a subject? Tell us what's missing</label>
+        <input type="text" id="f-other" name="otherSubject" maxlength="120" />
+      </div>
+
+      <div class="field">
+        <label for="f-desc">Short description *</label>
+        <textarea id="f-desc" name="description" required maxlength="300" placeholder="A sentence or two — what is it, and why should an organizer watch/read it?"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="f-creator">Your name or handle *</label>
+        <input type="text" id="f-creator" name="creator" required maxlength="80" />
+      </div>
+
+      <div class="field">
+        <label for="f-email">Email *</label>
+        <input type="email" id="f-email" name="email" required />
+        <p class="hint">Only used to tell you the outcome of review. Never published, never shared.</p>
+      </div>
+
+      <div class="field">
+        <label for="f-creatorlink">Link to your site or profile</label>
+        <input type="url" id="f-creatorlink" name="creatorLink" placeholder="https://…" />
+      </div>
+
+      <div class="field">
+        <label for="f-avatar">Avatar image URL</label>
+        <input type="url" id="f-avatar" name="avatar" placeholder="https://…" />
+        <p class="hint">A picture of you or your logo. We'll use a placeholder if you skip it.</p>
+      </div>
+
+      <div class="field">
+        <label for="f-thumb">Thumbnail image URL</label>
+        <input type="url" id="f-thumb" name="thumbnail" placeholder="https://…" />
+        <p class="hint">A preview image for your content's card. Optional but makes your card pop.</p>
+      </div>
+
+      <!-- Honeypot: humans never see this; bots fill it and get silently dropped. -->
+      <div class="hp-field" aria-hidden="true">
+        <label for="f-website">Website</label>
+        <input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="form-status" id="form-status" hidden></div>
+
+      <div>
+        <button type="submit" class="btn-primary" id="submit-btn">Submit for review</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('submit-form') as HTMLFormElement;
+    const status = document.getElementById('form-status')!;
+    const btn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+    // Cap subject checkboxes at 2.
+    const boxes = Array.from(
+      document.querySelectorAll<HTMLInputElement>('#subject-boxes input[type="checkbox"]')
+    );
+    document.getElementById('subject-boxes')!.addEventListener('change', () => {
+      const checked = boxes.filter((b) => b.checked);
+      for (const b of boxes) b.disabled = !b.checked && checked.length >= 2;
+    });
+
+    function show(kind: 'ok' | 'error', msg: string) {
+      status.hidden = false;
+      status.className = `form-status ${kind}`;
+      status.textContent = msg;
+      status.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
+      const subjects = boxes.filter((b) => b.checked).map((b) => b.value);
+
+      if (!data.title || !data.url || !data.type || !data.description || !data.creator || !data.email) {
+        show('error', 'Please fill in every required field (marked with *).');
+        return;
+      }
+      if (subjects.length < 1) {
+        show('error', 'Pick at least one subject (or tell us what subject is missing).');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      try {
+        const res = await fetch('/.netlify/functions/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, subjects }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (res.ok) {
+          form.reset();
+          for (const b of boxes) b.disabled = false;
+          show('ok', "Got it — thank you! A human will review your submission, usually within a week, and we'll email you either way.");
+        } else {
+          show('error', body.error || 'Something went wrong on our end. Please try again, or email aiactioncollective@gmail.com.');
+        }
+      } catch {
+        show('error', 'Could not reach the server. Please try again, or email aiactioncollective@gmail.com.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit for review';
+      }
+    });
+  </script>
+</Base>
