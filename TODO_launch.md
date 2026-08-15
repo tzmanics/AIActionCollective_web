@@ -1,5 +1,36 @@
 # Launch TODO
 
+## 0. Netlify hosting cutover (from Porkbun)
+
+- [ ] **Create the Netlify site**: app.netlify.com → Add new site → Import an
+      existing project → GitHub → `tzmanics/AIActionCollective_web`. Build
+      settings auto-fill from `netlify.toml` (`npm run build`, publish `dist`) —
+      just confirm and deploy.
+- [ ] **Smoke-test the `*.netlify.app` URL** before touching DNS: homepage,
+      filters, `/about`, `/submit`, a subject page.
+- [ ] **Add env vars** (Site configuration → Environment variables) — see §1 —
+      then **Trigger deploy** again: `PUBLIC_*` vars are baked in at build time.
+- [ ] **Point the domains at Netlify**: Domain management → Add custom domain →
+      `aiactioncollective.org` (add `www` when prompted), then also add
+      `aiactioncollective.com` and set **.org as the primary domain** — Netlify
+      will 301 every other domain to it, replacing the old .com forward.
+      DNS at Porkbun, either way works:
+  - **Recommended — Netlify DNS**: let Netlify walk you through activating
+        Netlify DNS for each domain, copy the 4 nameservers it gives you, then
+        Porkbun → domain → Nameservers → replace with Netlify's. (Repeat for .com.)
+  - **Or keep Porkbun DNS**: delete Porkbun's existing apex A/ALIAS records
+        (they point at Porkbun's hosting), then add
+        `ALIAS @ → apex-loadbalancer.netlify.com` and
+        `CNAME www → <your-site>.netlify.app`. Same on .com.
+- [ ] **Turn off the old Porkbun hosting/forwarding** for both domains so it
+      can't conflict.
+- [ ] **Verify HTTPS**: Netlify auto-provisions a Let's Encrypt cert once DNS
+      propagates (minutes to ~24h). Check the padlock on both .org and
+      `www`, and that .com 301s to .org.
+- [ ] **Deploy previews on PRs**: Site configuration → Build & deploy → Deploy
+      previews → "Any pull request" (the default) — this is how you preview
+      submissions before merging.
+
 ## 1. One-time setup (do these first)
 
 - [ ] **GitHub token for the submission pipeline**: create a fine-grained PAT at
